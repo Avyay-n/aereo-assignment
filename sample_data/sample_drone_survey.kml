@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Aereo Drone Mission Survey</name>
+    <description>Sample flight survey data with polygons, lines, and points</description>
+    
+    <!-- Survey Polygon 1: Agricultural Field Alpha (Bangalore area: UTM Zone 43N) -->
+    <Placemark id="poly_01">
+      <name>Survey Zone Alpha (Field)</name>
+      <description>High-resolution multispectral mapping zone</description>
+      <ExtendedData>
+        <Data name="crop_type"><value>Wheat</value></Data>
+        <Data name="target_gsd_cm"><value>2.5</value></Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              77.5900,12.9700,0
+              77.6000,12.9700,0
+              77.6000,12.9800,0
+              77.5900,12.9800,0
+              77.5900,12.9700,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+
+    <!-- Survey Polygon 2: Solar Farm Beta -->
+    <Placemark id="poly_02">
+      <name>Solar Farm Beta</name>
+      <description>Thermal inspection solar array polygon</description>
+      <ExtendedData>
+        <Data name="capacity_mw"><value>15.0</value></Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              77.6050,12.9720,0
+              77.6120,12.9720,0
+              77.6120,12.9780,0
+              77.6050,12.9780,0
+              77.6050,12.9720,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+
+    <!-- LineString 1: Linear Infrastructure Transect -->
+    <Placemark id="line_01">
+      <name>Linear Pipeline Corridor</name>
+      <description>Pipeline right-of-way inspection line</description>
+      <ExtendedData>
+        <Data name="voltage_kv"><value>66</value></Data>
+      </ExtendedData>
+      <LineString>
+        <coordinates>
+          77.5850,12.9650,0
+          77.5920,12.9710,0
+          77.5980,12.9790,0
+          77.6050,12.9850,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <!-- LineString 2: Perimeter Fence Line -->
+    <Placemark id="line_02">
+      <name>Perimeter Security Boundary Line</name>
+      <description>Facility perimeter boundary line</description>
+      <LineString>
+        <coordinates>
+          77.6150,12.9700,0
+          77.6200,12.9700,0
+          77.6200,12.9750,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <!-- Point 1: Takeoff & Landing Pad (Should have no measurement) -->
+    <Placemark id="pt_01">
+      <name>Drone Takeoff Pad LZ-1</name>
+      <description>Primary RTK Base Station and Launch Location</description>
+      <Point>
+        <coordinates>77.5946,12.9716,920</coordinates>
+      </Point>
+    </Placemark>
+
+    <!-- Point 2: Ground Control Point GCP-01 (Should have no measurement) -->
+    <Placemark id="pt_02">
+      <name>Ground Control Point GCP-01</name>
+      <description>Survey grade GNSS calibration target</description>
+      <Point>
+        <coordinates>77.5985,12.9755,918</coordinates>
+      </Point>
+    </Placemark>
+
+  </Document>
+</kml>

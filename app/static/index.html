@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geospatial File Measurement API | Aereo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #121826;
+      --bg-card: #182234;
+      --bg-glass: rgba(24, 34, 52, 0.75);
+      --border: #22314a;
+      --border-accent: #334b70;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #00d2ff;
+      --accent-glow: rgba(0, 210, 255, 0.25);
+      --accent-secondary: #3a7bd5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --purple: #8b5cf6;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 10% 20%, #0d1527 0%, var(--bg-primary) 90%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(10, 14, 23, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #000;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+    .nav-btn {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.5rem 0.9rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      color: #fff;
+      border-color: var(--accent);
+      background: rgba(0, 210, 255, 0.08);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      width: 100%;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(to right, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 650px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .upload-container {
+      background: var(--bg-card);
+      border: 2px dashed var(--border-accent);
+      border-radius: var(--radius);
+      padding: 3rem 2rem;
+      text-align: center;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    .upload-container:hover, .upload-container.dragover {
+      border-color: var(--accent);
+      background: rgba(0, 210, 255, 0.04);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 210, 255, 0.1);
+    }
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+    .upload-text {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .upload-hint {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+    #file-input { display: none; }
+
+    .sample-pill-container {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .sample-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 0.8rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sample-pill:hover {
+      background: rgba(0, 210, 255, 0.15);
+      border-color: var(--accent);
+    }
+
+    .loader {
+      display: none;
+      margin: 1.5rem auto;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .results-section {
+      display: none;
+      animation: fadeIn 0.4s ease forwards;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .stat-sub {
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-top: 0.25rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .badge-polygon { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-line { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-point { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    .json-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      color: #93c5fd;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⬢</div>
+      <div>
+        <div class="brand-title">Geospatial Measurement Engine</div>
+        <div class="brand-subtitle">Aereo Drone & GIS Backend</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="/docs" target="_blank" class="nav-btn">⚡ OpenAPI / Swagger</a>
+      <a href="/redoc" target="_blank" class="nav-btn">📖 ReDoc</a>
+      <a href="https://github.com/Avyay-n" target="_blank" class="nav-btn">🐙 GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Geospatial File Measurement API</h1>
+      <p>High-precision spatial analysis engine. Upload ESRI Shapefiles (.zip) or KML files to reproject geographic coordinates to optimal UTM zones and calculate metric measurements.</p>
+    </div>
+
+    <div class="upload-container" id="drop-zone">
+      <div class="upload-icon">🛰️</div>
+      <div class="upload-text">Drag & drop your geospatial file here, or click to browse</div>
+      <div class="upload-hint">Supported formats: <strong>.zip (ESRI Shapefile with .shp, .shx, .dbf, .prj)</strong> or <strong>.kml (Keyhole Markup Language)</strong></div>
+      <input type="file" id="file-input" accept=".zip,.kml">
+
+      <div class="sample-pill-container" onclick="event.stopPropagation()">
+        <span class="sample-pill" onclick="loadSample('drone')">Load Sample KML (Survey Mission)</span>
+        <span class="sample-pill" onclick="loadSample('parcels')">Load Sample Shapefile (Parcels)</span>
+        <span class="sample-pill" onclick="loadSample('lines')">Load Sample Shapefile (Flight Lines)</span>
+      </div>
+    </div>
+
+    <div class="loader" id="loader"></div>
+
+    <div class="results-section" id="results">
+      <!-- Top Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">File Status</div>
+          <div class="stat-value" id="res-status" style="color: var(--success)">COMPLETED</div>
+          <div class="stat-sub" id="res-filename">survey.kml</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Projected UTM CRS</div>
+          <div class="stat-value" id="res-projected-crs">EPSG:32643</div>
+          <div class="stat-sub" id="res-source-crs">Source: EPSG:4326</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Polygon Area</div>
+          <div class="stat-value" id="res-total-area">0 m²</div>
+          <div class="stat-sub" id="res-total-hectares">0 ha</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Line Length</div>
+          <div class="stat-value" id="res-total-length">0 m</div>
+          <div class="stat-sub" id="res-total-km">0 km</div>
+        </div>
+      </div>
+
+      <!-- Feature Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Extracted Features & Precise Measurements</div>
+          <div id="res-badge-summary"></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Feature ID / Name</th>
+              <th>Geometry</th>
+              <th>Measurement</th>
+              <th>Projected CRS</th>
+              <th>Properties</th>
+            </tr>
+          </thead>
+          <tbody id="features-table-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Built with FastAPI, Shapely, PyProj, PyShp & SQLite • Aereo Geospatial File Measurement Assignment
+  </footer>
+
+  <script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const loader = document.getElementById('loader');
+    const results = document.getElementById('results');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        uploadFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        uploadFile(e.target.files[0]);
+      }
+    });
+
+    async function uploadFile(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      loader.style.display = 'block';
+      results.style.display = 'none';
+
+      try {
+        const uploadRes = await fetch('/api/files/', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!uploadRes.ok) {
+          const err = await uploadRes.json();
+          alert('Upload failed: ' + (err.detail || 'Unknown error'));
+          loader.style.display = 'none';
+          return;
+        }
+
+        const data = await uploadRes.json();
+        await fetchMeasurements(data.id);
+      } catch (err) {
+        alert('Network or processing error: ' + err.message);
+      } finally {
+        loader.style.display = 'none';
+      }
+    }
+
+    async function fetchMeasurements(fileId) {
+      const res = await fetch(`/api/files/${fileId}/measurements/`);
+      if (!res.ok) {
+        alert('Failed to retrieve measurements.');
+        return;
+      }
+      const data = await res.json();
+      displayResults(data);
+    }
+
+    function displayResults(data) {
+      results.style.display = 'block';
+      document.getElementById('res-status').textContent = data.status;
+      document.getElementById('res-filename').textContent = data.filename;
+      document.getElementById('res-source-crs').textContent = 'Source: ' + data.crs;
+      document.getElementById('res-projected-crs').textContent = data.projected_crs || 'N/A';
+
+      const s = data.summary;
+      document.getElementById('res-total-area').textContent = s.total_area_sq_meters.toLocaleString() + ' m²';
+      document.getElementById('res-total-hectares').textContent = s.total_area_hectares.toFixed(2) + ' hectares';
+      document.getElementById('res-total-length').textContent = s.total_length_meters.toLocaleString() + ' m';
+      document.getElementById('res-total-km').textContent = s.total_length_km.toFixed(3) + ' km';
+
+      document.getElementById('res-badge-summary').innerHTML = `
+        <span class="badge badge-polygon">${s.polygon_count} Polygons</span>
+        <span class="badge badge-line">${s.linestring_count} Lines</span>
+        <span class="badge badge-point">${s.point_count} Points</span>
+      `;
+
+      const tbody = document.getElementById('features-table-body');
+      tbody.innerHTML = '';
+
+      data.features.forEach(f => {
+        const tr = document.createElement('tr');
+        
+        let typeBadge = '';
+        if (f.geometry_type.includes('Polygon')) typeBadge = `<span class="badge badge-polygon">${f.geometry_type}</span>`;
+        else if (f.geometry_type.includes('Line')) typeBadge = `<span class="badge badge-line">${f.geometry_type}</span>`;
+        else typeBadge = `<span class="badge badge-point">${f.geometry_type}</span>`;
+
+        let measText = '<span style="color:var(--text-muted)">None (dimensionless)</span>';
+        if (f.measurement && f.measurement.formatted) {
+          measText = `<strong style="color:var(--accent)">${f.measurement.formatted}</strong>`;
+        }
+
+        const propsStr = JSON.stringify(f.properties || {});
+
+        tr.innerHTML = `
+          <td>${f.feature_index + 1}</td>
+          <td><strong>${f.feature_id || 'Unnamed'}</strong></td>
+          <td>${typeBadge}</td>
+          <td>${measText}</td>
+          <td><span class="json-tag">${f.projected_crs || data.projected_crs || 'N/A'}</span></td>
+          <td><span class="json-tag" title='${propsStr}'>${propsStr.length > 35 ? propsStr.substring(0, 32) + '...' : propsStr}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      results.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function loadSample(type) {
+      let filename = 'sample_drone_survey.kml';
+      if (type === 'parcels') filename = 'sample_parcels_shapefile.zip';
+      if (type === 'lines') filename = 'sample_flight_lines_shapefile.zip';
+
+      loader.style.display = 'block';
+      results.style.display = 'none';
+
+      try {
+        const res = await fetch(`/api/sample/${filename}`);
+        if (!res.ok) {
+          alert('Could not fetch sample file from server.');
+          loader.style.display = 'none';
+          return;
+        }
+        const blob = await res.blob();
+        const file = new File([blob], filename);
+        await uploadFile(file);
+      } catch (err) {
+        alert('Error loading sample: ' + err.message);
+        loader.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
