@@ -164,3 +164,64 @@ def test_list_and_delete_file(client: TestClient):
     # Ensure deleted
     get_resp = client.get(f"/api/files/{file_id}/")
     assert get_resp.status_code == 404
+
+    # Delete non-existent
+    del_nonexistent = client.delete(f"/api/files/{file_id}/")
+    assert del_nonexistent.status_code == 404
+
+
+def test_zip_without_shp_file(client: TestClient):
+    import io
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("readme.txt", "No shapefile here")
+    buf.seek(0)
+
+    response = client.post(
+        "/api/files/",
+        files={"file": ("no_shp.zip", buf.getvalue(), "application/zip")},
+    )
+    assert response.status_code == 400
+    assert "No .shp file found" in response.json()["detail"]
+
+
+def test_corrupted_kml_xml(client: TestClient):
+    response = client.post(
+        "/api/files/",
+        files={"file": ("broken.kml", b"<kml><unclosed>", "application/vnd.google-earth.kml+xml")},
+    )
+    assert response.status_code == 400
+    assert "Failed to parse KML" in response.json()["detail"]
+
+
+def test_empty_kml_document(client: TestClient):
+    empty_kml = b'<?xml version="1.0"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document></Document></kml>'
+    response = client.post(
+        "/api/files/",
+        files={"file": ("empty.kml", empty_kml, "application/vnd.google-earth.kml+xml")},
+    )
+    assert response.status_code == 201
+    assert response.json()["feature_count"] == 0
+
+
+def test_flight_lines_shapefile_measurements(client: TestClient):
+    lines_zip = SAMPLE_DIR / "sample_flight_lines_shapefile.zip"
+    assert lines_zip.exists()
+
+    with open(lines_zip, "rb") as f:
+        response = client.post(
+            "/api/files/",
+            files={"file": ("sample_flight_lines_shapefile.zip", f, "application/zip")},
+        )
+    assert response.status_code == 201
+    file_id = response.json()["id"]
+
+    meas_resp = client.get(f"/api/files/{file_id}/measurements/")
+    assert meas_resp.status_code == 200
+    meas_data = meas_resp.json()
+    assert meas_data["summary"]["linestring_count"] == 2
+    assert meas_data["summary"]["total_length_meters"] > 0
+    assert meas_data["summary"]["total_length_km"] > 0
+
